@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>URL Redirect | zottelchin.de</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+    <link rel="stylesheet" href="//cdn.rawgit.com/necolas/normalize.css/master/normalize.css">
+    <link rel="stylesheet" href="//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css">
+ </head>
+<body>
+    <div id="cont">
+    <header>
+        <br>
+        <br>
+        <h2>URL Redirect Service</h2>
+    </header>
+    <div id="nokey">
+        <strong>Der Key <i id="k"></i> ist nicht in der Datenbank vorhanden.</strong>
+    </div>
+    <div id="newkey">
+        <h4>Erstellen Sie eine neue Weiterleitung:</h4>
+        <label for="URL">URL: </label> <input type="url" onchange="validate()" id="URL" ><br>
+        <p id="alert" class="alert alert-danger" hidden>Bitte gib eine gültige URL ein.</p>
+        <label for="length">Modus: </label>
+        <select id="length">
+            <option value="1">super kurz</option>
+            <option value="2">kurz</option>
+            <option value="3">lang</option>
+            <option value="4">super lang</option>
+            <option value="5">länger als lang</option>
+        </select><br>
+        <input type="button" value="Weiterleitung einreichten" id="butt">
+    </div>
+    <div class="content">
+        <input type="text" id="URL_key" value="https://url.zottelchin.de"/ onclick="this.select()" readonly>
+        <span id="kp" hidden>Kopiert!</span>
+        <input type="button" id="visible-button" value="Kopieren">
+        <input type="button" id="openB" value="Link öffnen">
+        
+    </div>
+    <footer>
+        <br>
+        <span>Erstellt von <a href="https://github.com/zottelchin">zottelchin</a>.</span>
+    </footer>
+</div>
+
+    <script>
+function validate() {
+    const regex = /(https?:\/\/)?.+\..{2,64}/gm;
+    if (!regex.test(document.getElementById("URL").value)){
+        document.getElementById("alert").hidden = false;
+    }else{
+        document.getElementById("alert").hidden = true;
+    }
+}
+
+
+        function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+    if (getParameterByName("key") == null) document.getElementById("nokey").remove();
+    else document.getElementById("k").innerText = getParameterByName("key");
+
+    document.getElementById("butt").onclick = function() {
+        if (/(https?:\/\/)?.+\..{2,64}/gm.test(document.getElementById("URL").value)){
+            document.getElementById("alert").hidden = true;
+            let val = document.getElementById("URL").value;
+        fetch("/", {
+            method: "PUT",
+            body: JSON.stringify({
+                url:val,
+                mode: parseInt(document.getElementById("length").value),
+                }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+            }).then((res) => {
+                if (res.status != 201) alert("error");
+                else return res.json();
+            }).then((x) => {
+                console.log(x)
+                document.getElementById("URL_key").value = window.location.host+ "/"+x.key;
+            })
+        }else{
+            document.getElementById("alert").hidden = false;
+        }
+        
+    }
+
+    document.getElementById("openB").onclick = function() {
+        console.log(location.protocol+ "//" + document.getElementById("URL_key").value)
+        window.open(location.protocol+ "//" + document.getElementById("URL_key").value)
+    }
+
+    document.querySelector("#visible-button").onclick = function() {
+  // Select the content
+  document.querySelector("#URL_key").select();
+  // Copy to the clipboard
+  document.execCommand('copy');
+  document.getElementById("kp").hidden = false;
+};
+
+
+    </script>
+
+
+</body>
+</html>
